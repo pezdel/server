@@ -1,6 +1,15 @@
-from os import error
-from pandas.core.common import count_not_none
+from io import BytesIO
+from PIL import Image
+import base64
+import numpy as np
+import torch
+import webdataset as wds
+import matplotlib as plt
+import torchvision.transforms as transforms
+import math
+
 from models import cnn, vae #make this work...should be doable
+from utils import img_sizes, membership_dict, round_number
 
 
 
@@ -11,63 +20,97 @@ So far 3 classes
 3: ImgMatch -> trains off Scaled Img and then tests vs Tars return based off membership
 '''
 
-# xx = ScaleImg(img, )
-# np_img = handle_images(img)
-# fixed_img = torch_snip(np_img)
-# plt_snip(fixed_img[0])
-#then we scale it?
 
-#so maybe we do xx = ScaleImg(img, ws?)
-#then when we need the img we can scale it based off w/e
+
 
 class ScaleImg:
     def __init__(self, img):
         self.img = img
-        self.handle_images()
-        self.torch_snip()
-        pass
+        self.fix_image()
+        self.get_scale()
+        self.scale_img()
 
 
-    def handle_images(images):
-        x = images.split(',', 1)
+
+    def fix_image(self):
+        x = self.img.split(',', 1)
         img_bytes = base64.b64decode(x[1]) 
         image_PIL = Image.open(BytesIO(img_bytes))
-        image_np = np.array(image_PIL)
-        return image_np 
-
-
-    def torch_snip(img):
-        ii = torch.Tensor(img[:, :, 3])
-        ii = torch.unsqueeze(ii, 0)
-        return ii
+        np_img = np.array(image_PIL) #has (x, x, 4).shape
+        ii = torch.Tensor(np_img[:, :, 3])
+        self.fixed_img = torch.unsqueeze(ii, 0) #fixed (1, x, x)
+        self.avg = math.ceil((len(self.fixed_img[0][0]) + len(self.fixed_img[0][:,1])) / 2)
 
 
 
-    def scale_snip(img, size):
-        resize_img = transforms.Resize(size=(90, 90))
-        return resize_img(img) 
-
-
-    def plt_snip(img):
-        plt.imshow(img)
-        plt.show()
+    def get_scale(self):
+        if self.avg <= img_sizes['small']['dim']:
+            self.size = img_sizes['small']
+        elif self.avg <= img_sizes['med']['dim']:
+            self.size = img_sizes['med']
+        else:
+            self.size = img_sizes['large']
 
 
 
 
-class Tars:
-    def __init__(self, membership, windowsize):
-        self.membership = 'Basic'
-        self.windowsize = 100
+    def scale_img(self):
+        x = self.size['dim']
+        resize_img = transforms.Resize(size=(x, x))
+        self.scaled_img = resize_img(self.fixed_img) 
 
 
- 
+
+
+
+class FileName:
+    """
+    used when creating Tars
+    and again when they submit and creating a dict of files to test on along with slots for topk
+    """
+    def __init__(self, currency, tf, ws):
+        self.currency = currency
+        self.tf = tf 
+        self.ws = ws 
+        self.name = ('{}_{}_{}'.format(self.currency, self.tf, self.ws))
+
+
+
+
+
+
+
+class TestList:
+    """
+    This creates the list of tar files that it should search for along with the path name
+
+    #how to use for later
+    for i in file_list:
+        print(file_list[i]['path'])
+    """
+    def __init__(self, membership, ws):
+        self.md = membership_dict[membership]
+        self.ws = ws 
+        min_ws = round_number(self.ws - self.md['ws_range'])
+        max_ws = round_number(self.ws + self.md['ws_range'])
+        xx = np.arange(min_ws, max_ws, 10)
+
+        #update path name when you have it
+        file_list = {}
+        for curr in self.md['currency']:
+            for tf in self.md['tf']:
+                for ws in xx:
+                    filename = FileName(curr, tf, ws)
+                    file_list[filename.name] = {'path': 'idk', 'topk': {}}
+        self.file_list = file_list
+
+
 
 
 class ImgMatch:
     """
     """
-    def __init__(self, snip_img: Numpy | Tensor, model: None, membership: str) -> None:
+    def __init__(self, snip_img , model: None, membership: str) -> None:
         self.snip_img = snip_img
 
         if model == 'CNN':
@@ -77,8 +120,10 @@ class ImgMatch:
         else:
             raise Exception('select model') 
         
-                      
-   def train_loop(self, epochs):
+
+    def train_loop(self, epochs):
+
+
         self.model.to(self.device)  
         self.model.train()  
 
@@ -97,4 +142,4 @@ class ImgMatch:
 
 
 
-   
+

@@ -1,15 +1,15 @@
-import torchvision.transforms as transforms
-from io import BytesIO
-from PIL import Image
-import numpy as np
-import base64
-import torch
-import matplotlib.pyplot as plt
 
-small = {'size': 50, 'input': 2500, 'hidden':750}
-med= {'size': 100, 'input': 10000, 'hidden':3000}
-large = {'size': 150, 'input': 22500, 'hidden':7000}
-sizes = {'small': small, 'med': med, 'large': large}
+small = {'dim': 50,
+         'input': 2500,
+         'hidden': 1000}
+med = {'dim': 100,
+       'input': 10000,
+       'hidden': 5000}
+large = {'dim': 150,
+         'input': 22500,
+         'hidden': 8000}
+
+img_sizes = {'small': small, 'med': med, 'large': large}
 
 
 
@@ -38,6 +38,18 @@ membership_dict = {'basic': basic, 'member': member, 'elite': elite}
 
 
 
+from arctic import Arctic
+arcticDB = Arctic('mongodb+srv://dbUser:chilicki89@cluster0.lubnq.mongodb.net/testOne?retryWrites=true&w=majority')
+def read_from_arctic(parent, child):
+    subDB = arcticDB[parent]
+    item = subDB.read(child)
+    return item 
+
+
+
+def round_number(num):
+    rounded = round(num/10)*10
+    return rounded
 
 
 

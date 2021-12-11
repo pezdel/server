@@ -1,23 +1,19 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-import pandas as pd 
+# import pandas as pd 
 from arctic import Arctic
 
-from utils_all import rolling_images, read_from_arctic
-from utils import ScaleImg, Tars, ImgMatch
-from utils import scale_size, membership_dict 
-
+from main import ScaleImg, TestList, ImgMatch, FileName
+from utils import read_from_arctic
 arcticDB = Arctic('mongodb+srv://dbUser:chilicki89@cluster0.lubnq.mongodb.net/testOne?retryWrites=true&w=majority')
+
 
 
 app = Flask(__name__)
 CORS(app)
 
-'''
-1: on_load - when user first loads the page it needs to pull the current eurusd chart data
-2: on_change - on curr or tf changes it needs to get the correct data 
-3: submit - after they snip a level it sends back {img, meta and membership}
-'''
+
+
 
 @app.route('/get_data', methods=['GET'])
 def data():
@@ -25,11 +21,15 @@ def data():
     return jsonify(data=df.data.to_dict(orient='records'), meta='EURUSD')
 
 
-#TODO: make this work for currency/tf changes
+
+
+
+#TODO: make this work for currency/tf changes, Redis
 @app.route('/get_api', methods=['POST'])
 def api():
-    #redis->then return correct array?
     pass
+
+
 
 
 
@@ -41,21 +41,14 @@ def snip():
         meta = request.json['meta']
         membership = request.json['membership']
 
-        mm = membership_dict[membership]
-        scale = ScaleImg(img, meta.ws)  
-        tar_list = Tars(membership, meta.ws) #pulls tar files based off ws +- some amount
-        loop = ImgMatch(scale, tar_list, membership, model) #takes those params and trains the img,
-            #then tests vs the tar_list 
-
-        loop.topk
+        # scale = ScaleImg(img)  
+        test_list = TestList(membership, meta['ws'])
 
 
-        #need a way to figure out which size to pick
-        
+        # loop = ImgMatch(scale, tar_list, membership, model) #takes those params and trains the img,
+
 
         # x = ImgMatch(np_img, options['model'], options['topx'], options['membership'])
-
-
     return jsonify({"content":"nothing!"})
  
 
