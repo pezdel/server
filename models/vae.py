@@ -48,7 +48,7 @@ class Decoder(nn.Module):
 
 
 
-class Model(nn.Module):
+class Vae(nn.Module):
     def __init__(self, input_size, hidden_size, latent_size=2):
         super().__init__()
         self.input_size = input_size
