@@ -9,6 +9,7 @@ def loss_criterion(inputs, targets, logvar, mu):
     kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
     return bce_loss + kl_loss
+    # return bce_loss
 
 
 def recon_loss(inputs, targets, logvar, mu):

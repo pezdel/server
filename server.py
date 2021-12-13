@@ -4,8 +4,10 @@ from flask_cors import CORS
 from arctic import Arctic
 
 from main import ScaleImg, TestList, ImgMatch, FileName
+from main import rolling_images, save_snip
 from utils import read_from_arctic
 arcticDB = Arctic('mongodb+srv://dbUser:chilicki89@cluster0.lubnq.mongodb.net/testOne?retryWrites=true&w=majority')
+import webdataset as wds
 
 
 
@@ -41,49 +43,42 @@ def snip():
         meta = request.json['meta']
         membership = request.json['membership']
 
+        # path = '/home/pezdel/vsCode/server/tars/sample_snip/One.tar' 
+        # save_snip(img, path, meta)
+
         scale = ScaleImg(img)  
         test_list = TestList(membership, meta['ws'])
-        print("here")
-        x = ImgMatch(scale.img, test_list.file_list, 'VAE', scale.size)
-        x.train_loop(500)
+        x = ImgMatch(scale.fixed_img, test_list.file_list, 'VAE', scale.size)
+        x.train_loop(50)
         x.test_loop()
-
-
-        # x = ImgMatch(np_img, options['model'], options['topx'], options['membership'])
+        x.testing()
     return jsonify({"content":"nothing!"})
  
 
 
 
 
-#so want to take these and put them in the right folder with right name that we can access later
-#if we give the same curr, tf and ws?
-#
+
+
+
+
+
+
+
+
+#TODO
+
 
 @app.route('/create_tar', methods=['POST'])
 def tar():
     images = request.json['data']
     meta = request.json['meta']
-    filename = FileName(meta['currency'], meta['tf'], meta['ws'])
-    rolling_images(images, filename, meta)
+    names = FileName(meta['currency'], meta['tf'], meta['ws'])
+    rolling_images(images, names.path, meta)
 
     return jsonify({"content":"nothing!"})
 
 
-
-def rolling_images(imgs, filename, meta):
-    sink = wds.TarWriter('/home/pezdel/vsCode/server/src/backend/tars/{}.tar'.format(filename))
-    for index, i in enumerate(imgs):
-        x = handle_images(imgs[index])
-        ii = torch.Tensor(x[:,:,3])
-        ii = torch.unsqueeze(ii, 0)
-
-        sink.write({
-            "__key__": "sample%06d" % index,
-            "input.pyd": ii,
-            "output.pyd": meta[index],
-        })
-    sink.close()
 
 
 
