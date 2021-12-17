@@ -15,8 +15,15 @@ from models.loss import loss_criterion
 
 
 
+#1:
+    #patcher draw img working and moving in sync
+#2:
+    #canvas creator
 
 
+
+    #so how to start? ideally we just do this in a sub file but we would nee
+    #need alot of stuff, imgs, a magnify, and a slider that
 
 
 

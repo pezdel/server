@@ -19,16 +19,34 @@ CORS(app)
 @app.route('/get_data', methods=['GET'])
 def data():
     df = read_from_arctic('EURUSD', '1d')
-    return jsonify(data=df.data.to_dict(orient='records'), meta='EURUSD')
-
+    return jsonify(data=df.to_dict(orient='records'), meta='EURUSD')
 
 
 
 
 #TODO: make this work for currency/tf changes, Redis
-@app.route('/get_api', methods=['POST'])
+@app.route('/change_data', methods=['POST'])
 def api():
-    pass
+    if request.json != None:
+        currency = request.json['currency']
+        tf = request.json['tf']
+        df = read_from_arctic(currency, tf)
+        return jsonify(data=df.to_dict(orient='records'), meta=currency)
+
+
+
+
+
+
+
+
+
+
+
+
+    #so now we have alot more tars, lets get a sample running in jn
+
+
 
 
 

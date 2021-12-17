@@ -157,6 +157,14 @@ def save_snip(img, path, meta):
 
 
 
+    #so clean up on chart is getting big
+    #figure out how to organize it better
+    #startWindowSlider is the only thing that should kick off updates on price/date 
+    #then update mag 
+    #fix price and date 
+    #standardize snip/mag scale 
+    #export snip
+
 
 
 
@@ -168,6 +176,10 @@ arcticDB = Arctic('mongodb+srv://dbUser:chilicki89@cluster0.lubnq.mongodb.net/te
 def read_from_arctic(parent, child):
     subDB = arcticDB[parent]
     item = subDB.read(child)
+    item = item.data
+    if len(item) >2000:
+        print(len(item))
+        item = item.iloc[-2000:,:]
     return item 
 
 
