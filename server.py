@@ -15,11 +15,21 @@ CORS(app)
 
 
 
+@app.route('/get_data_multi', methods=['GET'])
+def two():
+    df = read_from_arctic('EURUSD', '1h')
+    df_1 = df.iloc[:1000,:]
+    df_2 = df.iloc[1001:,:]
+    hh = {}
+    hh['df_1'] = df_1.to_dict(orient='records')
+    hh['df_2'] = df_2.to_dict(orient='records')
+    return hh
+
 
 @app.route('/get_data', methods=['GET'])
 def data():
     df = read_from_arctic('EURUSD', '1d')
-    return jsonify(data=df.to_dict(orient='records'), meta='EURUSD')
+    return jsonify(df.to_dict(orient='records'))
 
 
 
