@@ -15,6 +15,9 @@ CORS(app)
 
 
 
+
+
+#----testing----------------------
 @app.route('/get_data_multi', methods=['GET'])
 def two():
     df = read_from_arctic('EURUSD', '1h')
@@ -30,6 +33,15 @@ def two():
 def data():
     df = read_from_arctic('EURUSD', '1d')
     return jsonify(df.to_dict(orient='records'))
+
+
+
+
+
+
+
+
+
 
 
 
